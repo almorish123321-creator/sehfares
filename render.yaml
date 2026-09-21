@@ -29,6 +29,15 @@ services:
       - key: ADMIN_MASTER_TOKEN
         sync: false
 
+      # ---- Persistence (IMPORTANT) ----
+      # Free plan cannot attach a Persistent Disk, so without a database your
+      # data is erased on every deploy. Set MONGODB_URI (free MongoDB Atlas M0)
+      # to keep subscriptions and reports permanently.
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        sync: false
+
       # ---- Optional configuration ----
       - key: ADMIN_USERNAME
         sync: false

@@ -47,7 +47,7 @@ const ADMIN_USERNAMES = [ADMIN_USERNAME, ...(process.env.ADMIN_USERNAMES || '').
 const isAdminUsername = (u) => Boolean(u) && ADMIN_USERNAMES.includes(String(u).toLowerCase().replace(/^@/, ''));
 
 // DataManager: Persistent, Atomic, and Real-Time Storage
-const { dataManager, normalizeSubscription, getRemainingDays, withDbLock, OWNER_CHAT_ID, OWNER_USERNAME } = require('./dataManager');
+const { dataManager, normalizeSubscription, getRemainingDays, withDbLock, OWNER_CHAT_ID, OWNER_USERNAME, storageBackend } = require('./dataManager');
 
 // Transaction logging helper (delegates to DataManager)
 const logTransaction = async (dataOrEntry, entryDetails = null) => {
@@ -2849,7 +2849,7 @@ const startServer = async () => {
                 console.log(`✓ Server running at http://localhost:${PORT}`);
                 console.log(`✓ WEB_APP_URL = ${WEB_APP_URL}`);
                 console.log(`✓ Bot mode: ${isProduction ? 'Webhook (Production/Render)' : 'Polling (Local)'}`);
-                console.log(`✓ Database: Persistent DataManager\n`);
+                console.log(`✓ Storage backend: ${storageBackend === 'mongodb' ? 'MongoDB Atlas (persistent across deploys)' : 'local files (' + (process.env.DATA_DIR || 'DATA_DIR not set — ephemeral on Render free plan') + ')'}\n`);
                 resolve(serverInstance);
             });
         });

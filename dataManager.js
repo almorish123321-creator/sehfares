@@ -38,7 +38,89 @@ const withDbLock = (fn) => {
 };
 
 // Safe Atomic File Write (write to .tmp then rename)
+// -------------------------------------------------------------
+// Storage backend selection
+//
+//   MONGODB_URI set → MongoDB Atlas. Data survives deploys/restarts even when the
+//                     host filesystem is ephemeral (e.g. the Render free plan,
+//                     which does not allow a Persistent Disk).
+//   otherwise       → local JSON files (Render Persistent Disk via DATA_DIR,
+//                     or ./data for local development).
+//
+// Every persistence call in this file goes through readJsonSafe /
+// atomicWriteJson, so the backend can be switched without touching any
+// business logic.
+// -------------------------------------------------------------
+const MONGODB_URI = (process.env.MONGODB_URI || '').trim();
+const MONGODB_DB_NAME = (process.env.MONGODB_DB_NAME || '').trim() || 'seha_sickleave_app';
+const useMongo = MONGODB_URI.length > 0;
+
+let mongoCollection = null;
+
+// Map a storage file path to a stable key inside the database
+const storeKeyFromPath = (filePath) => path.basename(filePath).replace(/\.json$/i, '');
+
+const getMongoCollection = async () => {
+    if (mongoCollection) return mongoCollection;
+    // Required lazily so the app still runs on hosts that only use file storage
+    const { MongoClient } = require('mongodb');
+    const client = new MongoClient(MONGODB_URI, {
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 10000,
+        retryWrites: true,
+        retryReads: true
+    });
+    await client.connect();
+    await client.db(MONGODB_DB_NAME).command({ ping: 1 });
+    mongoCollection = client.db(MONGODB_DB_NAME).collection('app_state');
+    await mongoCollection.createIndex({ key: 1 }, { unique: true });
+    console.log(`✅ Connected to MongoDB Atlas (database: ${MONGODB_DB_NAME}) — data is persistent`);
+    return mongoCollection;
+};
+
+// Verify the database is reachable. Called once at startup so a wrong
+// MONGODB_URI fails fast and loudly instead of losing data later.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const initStorage = async () => {
+    if (!useMongo) {
+        console.log(`✅ DataManager storage: local files (${baseDir})`);
+        return { backend: 'file', dir: baseDir };
+    }
+
+    // Retry a few times: a transient network/DNS blip at boot must not take the
+    // service down, but a genuinely wrong MONGODB_URI still fails loudly.
+    const MAX_ATTEMPTS = 5;
+    let lastErr = null;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+            await getMongoCollection();
+            return { backend: 'mongodb', database: MONGODB_DB_NAME };
+        } catch (err) {
+            lastErr = err;
+            console.error(`⚠️  MongoDB connection attempt ${attempt}/${MAX_ATTEMPTS} failed: ${err.message}`);
+            if (attempt < MAX_ATTEMPTS) await sleep(Math.min(1000 * 2 ** (attempt - 1), 8000));
+        }
+    }
+
+    console.error('\n❌ Could not connect to MongoDB. Refusing to start: running with an' +
+                  '\n   unreachable database would show empty data and could overwrite it.');
+    console.error('   Check MONGODB_URI / MONGODB_DB_NAME and that your cluster allows' +
+                  ' connections from this host (Atlas → Network Access).\n');
+    throw lastErr;
+};
+
 const atomicWriteJson = async (filePath, data) => {
+    if (useMongo) {
+        const col = await getMongoCollection();
+        await col.replaceOne(
+            { key: storeKeyFromPath(filePath) },
+            { key: storeKeyFromPath(filePath), data, updatedAt: new Date() },
+            { upsert: true }
+        );
+        return;
+    }
+
     const dir = path.dirname(filePath);
     if (!fsSync.existsSync(dir)) {
         await fs.mkdir(dir, { recursive: true });
@@ -60,14 +142,26 @@ const atomicWriteJson = async (filePath, data) => {
 };
 
 const readJsonSafe = async (filePath, defaultValue) => {
+    if (useMongo) {
+        // Deliberately NOT swallowing errors here: returning an empty default on a
+        // database failure would let the next write replace real data with {}.
+        const col = await getMongoCollection();
+        const doc = await col.findOne({ key: storeKeyFromPath(filePath) });
+        if (!doc || doc.data == null) return defaultValue;
+        return doc.data;
+    }
+
+    // A missing file is a normal first run; a corrupt file is NOT and must never
+    // be silently treated as empty, otherwise the next write wipes the database.
+    if (!fsSync.existsSync(filePath)) return defaultValue;
     try {
-        if (!fsSync.existsSync(filePath)) return defaultValue;
         const content = await fs.readFile(filePath, 'utf-8');
         if (!content || !content.trim()) return defaultValue;
         return JSON.parse(content);
     } catch (err) {
-        console.warn(`Warning reading ${filePath}: ${err.message}. Using default.`);
-        return defaultValue;
+        console.error(`❌ FATAL: ${filePath} exists but could not be parsed: ${err.message}`);
+        console.error('   Refusing to fall back to an empty dataset (that would erase your data).');
+        throw err;
     }
 };
 
@@ -147,8 +241,12 @@ class DataManager {
         return withDbLock(async () => {
             if (this.initialized) return;
 
-            // Ensure storage directory exists
-            if (!fsSync.existsSync(this.baseDir)) {
+            // Fail fast if a database backend was configured but is unreachable.
+            // Doing this before any read/write avoids silently starting with empty data.
+            await initStorage();
+
+            // Ensure storage directory exists (file backend only)
+            if (!useMongo && !fsSync.existsSync(this.baseDir)) {
                 await fs.mkdir(this.baseDir, { recursive: true });
                 console.log(`✓ Created persistent storage directory: ${this.baseDir}`);
             }
@@ -905,5 +1003,7 @@ module.exports = {
     getRemainingDays,
     withDbLock,
     OWNER_CHAT_ID,
-    OWNER_USERNAME
+    OWNER_USERNAME,
+    storageBackend: useMongo ? 'mongodb' : 'file',
+    initStorage
 };
