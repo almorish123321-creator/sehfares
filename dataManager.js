@@ -366,6 +366,15 @@ class DataManager {
                 needsSave = true;
             }
             owner.username = OWNER_USERNAME;
+
+            // Keep the owner display name in sync with ADMIN_NAME (self-healing:
+            // applies to accounts created before the variable was configured).
+            const configuredOwnerName = (process.env.ADMIN_NAME || '').trim();
+            if (configuredOwnerName && owner.name !== configuredOwnerName) {
+                owner.name = configuredOwnerName;
+                needsSave = true;
+            }
+
             subs[OWNER_CHAT_ID] = normalizeSubscription(owner);
         }
 
