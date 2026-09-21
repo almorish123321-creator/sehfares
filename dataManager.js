@@ -317,7 +317,8 @@ class DataManager {
         if (!owner) {
             owner = {
                 username: OWNER_USERNAME,
-                name: 'Zakaria Mohammed',
+                // Configurable owner display name (set ADMIN_NAME in the environment)
+                name: (process.env.ADMIN_NAME || '').trim() || OWNER_USERNAME || 'المالك',
                 status: 'active',
                 plan: 'unlimited',
                 report_payment_source: 'unlimited',

@@ -78,8 +78,26 @@ class ShortIoService {
      * Construct canonical fallback short URL
      */
     buildFallbackUrl(path) {
-        const domain = this.getDomain();
         const sanitized = this.sanitizePath(path);
+
+        // IMPORTANT: a `<short-domain>/<slug>` URL is only valid if the link was
+        // actually created through the Short.io API. When no API key is configured
+        // that link does NOT exist and returns 404 — so the QR code on the PDF
+        // would lead nowhere.
+        // In that case point at this app's own slug route (see server.js), which
+        // redirects to the inquiry page. The link keeps working either way.
+        const appBase = (
+            process.env.FALLBACK_SHORT_BASE ||
+            process.env.WEB_APP_URL ||
+            process.env.RENDER_EXTERNAL_URL ||
+            ''
+        ).trim().replace(/\/+$/, '');
+
+        if (appBase) {
+            return `${appBase}/${sanitized}`;
+        }
+
+        const domain = this.getDomain();
         return `https://${domain}/${sanitized}`;
     }
 

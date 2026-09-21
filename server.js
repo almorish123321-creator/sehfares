@@ -2111,7 +2111,17 @@ app.post('/api/generate-native-pdf', async (req, res) => {
 </head>
 <body>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+  /* Tajawal is self-hosted so the PDF does not depend on Google Fonts at render time.
+     Google Fonts is kept as a secondary source in case the local asset is unavailable. */
+  @font-face { font-family:'Tajawal'; font-style:normal; font-weight:400; font-display:block;
+    src:url('${WEB_APP_URL}/fonts/tajawal-400.woff2') format('woff2'),
+        url('https://fonts.gstatic.com/s/tajawal/v12/Iura6YBj_oCad4k1nzSBC45I.woff2') format('woff2'); }
+  @font-face { font-family:'Tajawal'; font-style:normal; font-weight:500; font-display:block;
+    src:url('${WEB_APP_URL}/fonts/tajawal-500.woff2') format('woff2'),
+        url('https://fonts.gstatic.com/s/tajawal/v12/Iurf6YBj_oCad4k1l8KiHrRpiYlJ.woff2') format('woff2'); }
+  @font-face { font-family:'Tajawal'; font-style:normal; font-weight:700; font-display:block;
+    src:url('${WEB_APP_URL}/fonts/tajawal-700.woff2') format('woff2'),
+        url('https://fonts.gstatic.com/s/tajawal/v12/Iurf6YBj_oCad4k1l4qkHrRpiYlJ.woff2') format('woff2'); }
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; user-select: text; -webkit-user-select: text; }
   html { background: #fff !important; }
   body { margin: 0; padding: 0; background: #fff !important; width: 794px; height: 1123px; overflow: hidden; direction: ltr; user-select: text; -webkit-user-select: text; }
@@ -2307,7 +2317,22 @@ app.post('/api/generate-native-pdf', async (req, res) => {
         const browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
         await page.setContent(html, { waitUntil: 'load', timeout: 90000 });
-        
+
+        // CRITICAL: `load` fires before web fonts are applied. Without this wait the
+        // PDF is rendered with the fallback font, producing broken Arabic glyphs.
+        try {
+            await page.evaluate(async () => {
+                if (document.fonts && document.fonts.ready) {
+                    await document.fonts.ready;
+                }
+                // Give the font engine a tick to re-layout after fonts become active
+                await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+            });
+            addLog('Web fonts ready (document.fonts.ready awaited)');
+        } catch (fontErr) {
+            console.warn('Font readiness check skipped:', fontErr.message);
+        }
+
         addLog('Generating PDF via Puppeteer...');
         const pdfResult = await page.pdf({
             printBackground: true,
