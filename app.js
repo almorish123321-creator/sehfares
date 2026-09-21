@@ -11,7 +11,8 @@ const app = {
         leaveType: 'sickleave', // 'sickleave' or 'companion'
         currentReportId: null,
         hospitalLogoUrl: null, // Use default in HTML unless uploaded
-        config: { ownerContact: '', ownerUsername: '' } // loaded from /api/public-config
+        config: { ownerContact: '', ownerUsername: '' }, // loaded from /api/public-config
+        testMode: false // 🧪 demo mode: fixed data + locked fields
     },
 
     currentDropdown: null,
@@ -1539,6 +1540,10 @@ const app = {
         let randHours = Math.floor(Math.random() * 24).toString().padStart(2, '0');
         let randMinutes = Math.floor(Math.random() * 60).toString().padStart(2, '0');
         document.getElementById('issue_time').value = `${randHours}:${randMinutes}`;
+
+        // 🧪 In demo mode every form opens pre-filled with the fixed dataset
+        // for its report type, with all fields locked.
+        if (this.state.testMode) this.applyTestData();
     },
 
     syncHospitalEn() {
@@ -1718,6 +1723,115 @@ const app = {
         } else {
             window.open(contact, '_blank');
         }
+    },
+
+    // =================================================================
+    // وضع تجريبي (🧪): بيانات ثابتة + قفل الحقول
+    // الغرض: عرض/تجربة النموذج وتوليد التقارير بدون إدخال يدوي.
+    // لا يُرسل بيانات حقيقية ولا يعدّل حسابات المشتركين.
+    // =================================================================
+    TEST_MODE_DATA: {
+        sickleave: {
+            admission_date: '2026-03-08', discharge_date: '2026-03-12', duration: '4',
+            issue_date: '2026-03-12', issue_time: '09:45',
+            national_id: '1098765432',
+            patient_name_ar: 'محمد علي الزهراني', patient_name_en: 'MOHAMMED ALI ALZAHRANI',
+            nationality: 'سعودي', employer: 'وزارة الصحة',
+            doctor_name_ar: 'د. أحمد سعيد الغامدي', doctor_name_en: 'DR. AHMED S. ALGHAMDI',
+            job_title_ar: 'طبيب عام', job_title_en: 'General Practitioner',
+            hospital_ar: 'مستشفى الملك فهد العام', hospital_en: 'King Fahd General Hospital'
+        },
+        companion: {
+            admission_date: '2026-03-08', discharge_date: '2026-03-12', duration: '4',
+            issue_date: '2026-03-12', issue_time: '09:45',
+            national_id: '1098765432',
+            escort_name_ar: 'سارة أحمد القحطاني', escort_name_en: 'SARA AHMED ALQAHTANI',
+            relation_ar: 'زوجة', relation_en: 'Spouse',
+            nationality: 'سعودي', employer: 'وزارة الصحة',
+            doctor_name_ar: 'د. أحمد سعيد الغامدي', doctor_name_en: 'DR. AHMED S. ALGHAMDI',
+            job_title_ar: 'طبيب عام', job_title_en: 'General Practitioner',
+            hospital_ar: 'مستشفى الملك فهد العام', hospital_en: 'King Fahd General Hospital'
+        },
+        companion_review: {
+            admission_date: '2026-03-08', discharge_date: '2026-03-12', duration: '4',
+            issue_date: '2026-03-12', issue_time: '09:45',
+            national_id: '1098765432',
+            escort_name_ar: 'سارة أحمد القحطاني', escort_name_en: 'SARA AHMED ALQAHTANI',
+            relation_ar: 'زوجة', relation_en: 'Spouse',
+            nationality: 'سعودي', employer: 'وزارة الصحة',
+            doctor_name_ar: 'د. أحمد سعيد الغامدي', doctor_name_en: 'DR. AHMED S. ALGHAMDI',
+            job_title_ar: 'طبيب عام', job_title_en: 'General Practitioner',
+            hospital_ar: 'مستشفى الملك فهد العام', hospital_en: 'King Fahd General Hospital'
+        }
+    },
+
+    // Toggle the demo mode on/off
+    toggleTestMode() {
+        this.state.testMode = !this.state.testMode;
+        const btn = document.getElementById('btn-test-mode');
+        if (btn) {
+            btn.classList.toggle('active', this.state.testMode);
+            // Active state is applied inline so style.css stays identical to the
+            // reference stylesheet.
+            btn.style.background = this.state.testMode ? '#e74c3c' : '';
+            btn.style.color = this.state.testMode ? '#ffffff' : '';
+            btn.title = this.state.testMode ? 'اضغط لإيقاف الوضع التجريبي' : 'تعبئة النموذج ببيانات ثابتة وقفل الحقول';
+        }
+
+        if (this.state.testMode) {
+            this.applyTestData();
+            this.showToast('تم تفعيل الوضع التجريبي — الحقول مقفلة ببيانات ثابتة', 'success');
+        } else {
+            this.setFormLocked(false);
+            const form = document.getElementById('report-form');
+            if (form) form.reset();
+            this.showToast('تم إيقاف الوضع التجريبي', 'info');
+        }
+    },
+
+    // Fill the visible form with the fixed demo dataset for the current report type
+    applyTestData() {
+        const type = this.state.leaveType || 'sickleave';
+        const data = this.TEST_MODE_DATA[type] || this.TEST_MODE_DATA.sickleave;
+
+        for (const [id, value] of Object.entries(data)) {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        }
+
+        // Companion reports keep the national id inside the escort block.
+        // For the other report types the escort fields must be cleared, otherwise
+        // the previous demo values would linger in the (hidden) inputs.
+        if (type !== 'companion' && type !== 'companion_review') {
+            ['escort_name_ar', 'escort_name_en', 'relation_ar', 'relation_en'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const escort = document.getElementById('escort-fields');
+            if (escort) escort.style.display = 'none';
+        }
+
+        this.setFormLocked(true);
+    },
+
+    // Lock / unlock every control of the report form.
+    // pointer-events is used (instead of `disabled`) so values stay readable and
+    // the visual design is unchanged.
+    setFormLocked(locked) {
+        const root = document.getElementById('report-form') || document.getElementById('form-screen');
+        if (!root) return;
+
+        root.querySelectorAll('input, select, textarea').forEach((el) => {
+            const type = (el.type || '').toLowerCase();
+            const isSelector = type === 'checkbox' || type === 'radio' || type === 'file' || el.tagName === 'SELECT';
+            el.style.pointerEvents = locked ? 'none' : '';
+            el.style.opacity = locked ? '0.75' : '';
+            if (!isSelector) {
+                el.readOnly = locked;
+            }
+        });
+
+        root.classList.toggle('test-locked', locked);
     },
 
     async loadPdfTemplate() {
@@ -1941,6 +2055,8 @@ const app = {
             app.renderReports();
 
             document.getElementById('report-form').reset();
+            // Keep the demo dataset applied when returning to the form in test mode
+            if (this.state.testMode) this.applyTestData();
             app.navigate('success');
 
         } catch(e) {
