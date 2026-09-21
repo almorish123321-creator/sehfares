@@ -2742,8 +2742,48 @@ app.post(`/webhook/${TOKEN}`, (req, res) => {
 
 // Background Task Scheduler (Rule 24, Rule 29, Rule 30)
 let schedulerInterval = null;
+// -------------------------------------------------------------
+// Webhook self-heal
+//
+// A Telegram webhook can be cleared from the outside: any process that starts
+// this bot in polling mode calls `deleteWebhook` so it can use getUpdates.
+// When that happens the production bot silently stops receiving messages.
+// We therefore re-check the webhook periodically and restore it if needed.
+// -------------------------------------------------------------
+const ensureWebhook = async () => {
+    if (!isProduction) return false;
+    try {
+        const expected = `${WEB_APP_URL}/webhook/${TOKEN}`;
+        const info = await bot.getWebHookInfo();
+        if (info && info.url === expected) return true;
+        await bot.setWebhook(expected, { max_connections: 40 });
+        console.warn(`[Webhook] Restored — it was ${info && info.url ? 'pointing elsewhere' : 'missing'}`);
+        return true;
+    } catch (e) {
+        console.warn('[Webhook] Self-heal check failed:', e.message);
+        return false;
+    }
+};
+
+// Public, non-secret bot health probe (handy for monitoring)
+app.get('/api/bot-status', async (req, res) => {
+    try {
+        const info = await bot.getWebHookInfo();
+        res.json({
+            success: true,
+            mode: isProduction ? 'webhook' : 'polling',
+            webhookSet: Boolean(info && info.url),
+            pendingUpdates: info ? info.pending_update_count : null,
+            lastError: info ? info.last_error_message || null : null
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
 const startBackgroundScheduler = () => {
     if (schedulerInterval) return;
+    let schedulerTicks = 0;
     const fsSync = require('fs');
     schedulerInterval = setInterval(async () => {
         try {
@@ -2764,6 +2804,12 @@ const startBackgroundScheduler = () => {
                         } catch (e) {}
                     }
                 }
+            }
+            // Verify the Telegram webhook every ~5 minutes and restore it if it
+            // was cleared (see ensureWebhook above).
+            schedulerTicks += 1;
+            if (isProduction && schedulerTicks % 5 === 0) {
+                await ensureWebhook();
             }
         } catch (schedErr) {
             console.warn('[Scheduler] Periodic maintenance notice:', schedErr.message);
