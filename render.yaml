@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: seha-sickleave-app
+    env: node
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    disk:
+      name: seha_data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      # ---- Non-secret defaults ----
+      - key: PORT
+        value: 3000
+      - key: DATA_DIR
+        value: /data
+      # Render provides RENDER_EXTERNAL_URL automatically, so the app can derive
+      # its own public URL. Set WEB_APP_URL only if you use a custom domain.
+      - key: NODE_ENV
+        value: production
+
+      # ---- Secrets: sync:false => you must enter the value in the Render dashboard ----
+      # The application will refuse to start if a REQUIRED one is missing.
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: ADMIN_CHAT_ID
+        sync: false
+      - key: ADMIN_MASTER_TOKEN
+        sync: false
+
+      # ---- Optional configuration ----
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_USERNAMES
+        sync: false
+      - key: TELEGRAM_CHANNEL_ID
+        sync: false
+      - key: WEB_APP_URL
+        sync: false
+      - key: INQUIRY_URL
+        sync: false
+      - key: SHORTIO_API_KEY
+        sync: false
+      - key: SHORTIO_DOMAIN
+        sync: false

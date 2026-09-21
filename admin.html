@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة - صحتي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary-blue: #23559d;
+            --light-blue: #ebf2f8;
+            --text-dark: #333;
+            --border-color: #ced4da;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+        body {
+            background-color: #f5f8fa;
+            color: var(--text-dark);
+            padding: 20px;
+        }
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            direction: ltr;
+        }
+        input:focus {
+            border-color: var(--primary-blue);
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #1a437d;
+        }
+        .hidden { display: none; }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <h1>لوحة إدارة المشتركين</h1>
+    <div class="container">
+        <form id="adminForm">
+            <div class="form-group">
+                <label>معرف التليجرام (Username)</label>
+                <input type="text" id="targetUsername" placeholder="@username" required>
+            </div>
+            
+            <div class="form-group">
+                <label>نوع الاشتراك</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="subType" value="unlimited" checked onchange="toggleType()"> مدة (أيام)</label>
+                    <label><input type="radio" name="subType" value="points" onchange="toggleType()"> نقاط</label>
+                </div>
+            </div>
+
+            <div class="form-group" id="daysField">
+                <label>عدد الأيام (للاشتراك المفتوح)</label>
+                <input type="number" id="days" value="30" min="0">
+            </div>
+
+            <div class="form-group hidden" id="pointsField">
+                <label>عدد النقاط (للاشتراك المحدود)</label>
+                <input type="number" id="points" value="0" min="0">
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">إضافة الاشتراك</button>
+            <div id="msgBox" class="message"></div>
+        </form>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function toggleType() {
+            const type = document.querySelector('input[name="subType"]:checked').value;
+            if(type === 'unlimited') {
+                document.getElementById('daysField').classList.remove('hidden');
+                document.getElementById('pointsField').classList.add('hidden');
+                document.getElementById('days').value = "30";
+                document.getElementById('points').value = "0";
+            } else {
+                document.getElementById('daysField').classList.add('hidden');
+                document.getElementById('pointsField').classList.remove('hidden');
+                document.getElementById('days').value = "0";
+                document.getElementById('points').value = "50";
+            }
+        }
+
+        document.getElementById('adminForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            const msgBox = document.getElementById('msgBox');
+            btn.innerText = "جاري التنفيذ...";
+            btn.disabled = true;
+            msgBox.style.display = 'none';
+            msgBox.className = 'message';
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const targetUsername = document.getElementById('targetUsername').value;
+            const days = document.getElementById('days').value || 0;
+            const points = document.getElementById('points').value || 0;
+
+            try {
+                const res = await fetch('/api/admin/add-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, targetUsername, days, points })
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    msgBox.innerText = data.message;
+                    msgBox.classList.add('success');
+                    msgBox.style.display = 'block';
+                    document.getElementById('targetUsername').value = "";
+                } else {
+                    msgBox.innerText = "خطأ: " + (data.error || 'غير مصرح');
+                    msgBox.classList.add('error');
+                    msgBox.style.display = 'block';
+                }
+            } catch(e) {
+                msgBox.innerText = "فشل الاتصال بالخادم";
+                msgBox.classList.add('error');
+                msgBox.style.display = 'block';
+            } finally {
+                btn.innerText = "إضافة الاشتراك";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<div id="pdf-content" dir="ltr" style="width: 794px; height: 1122px; box-sizing: border-box; background: white; font-family: 'Tajawal', 'Arial', sans-serif; position: relative; overflow: hidden; margin: 0; padding: 40px; display: flex; flex-direction: column;">
+    
+    <!-- === HEADER === -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; height: 90px; margin-bottom: 25px;">
+        <!-- Left Logo (Seha) -->
+        <div style="width: 160px;">
+            <img src="./الشعارات/Seha.png" alt="Seha Logo" style="width: 140px; object-fit: contain;" onerror="this.src='https://i.ibb.co/3sks6b9/seha-logo-en.png'">
+        </div>
+        
+        <!-- Center Content -->
+        <div style="text-align: center; flex-grow: 1; margin-top: 10px;">
+            <img src="./الشعارات/ksa_calligraphy.png" alt="Calligraphy" style="height: 55px; object-fit: contain;">
+            <p style="font-family: 'Times New Roman', Times, serif; font-size: 15px; color: #000; margin: 5px 0 0 0; font-weight: bold;">Kingdom of Saudi Arabia</p>
+        </div>
+        
+        <!-- Right Graphic -->
+        <div style="width: 160px; text-align: right; padding-top: 10px;">
+            <svg width="130" height="61" viewBox="0 0 408 192" style="opacity: 0.8; display: inline-block;">
+                <path d="M 0,0 L 44,28 L 56,109 L 91,2 L 116,59 L 56,109 M 56,109 L 113,124 L 116,59 M 116,59 L 154,1 M 116,59 L 229,44 L 327,96 M 116,59 L 201,74 L 327,96 M 113,124 L 201,74 L 229,44 M 213,1 L 229,44 M 241,1 L 327,96 M 324,1 L 327,96 M 327,96 L 386,1 L 404,190 L 327,96" stroke="#9cb1cd" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+        </div>
+    </div>
+    
+    <!-- === TITLE === -->
+    <div style="text-align: center; margin-bottom: 25px;">
+        <h1 id="pdf-title-ar" style="color: #316DB5; font-size: 26px; margin: 0 0 6px 0; font-weight: bold; font-family: 'Tajawal', sans-serif;">تقرير إجازة مرضية</h1>
+        <h2 id="pdf-title-en" style="color: #293C73; font-size: 18px; margin: 0; font-weight: bold;">Sick Leave Report</h2>
+    </div>
+
+    <!-- === TABLE === -->
+    <div class="table-wrapper" style="width: 100%; border-radius: 12px; overflow: hidden; border: 1.3px solid #cccccc; margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; table-layout: fixed;">
+            <colgroup>
+                <col style="width: 20.7%;">
+                <col style="width: 29.3%;">
+                <col style="width: 29.3%;">
+                <col style="width: 20.7%;">
+            </colgroup>
+            <tbody>
+                <tr>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">Leave ID</td>
+                    <td colspan="2" id="pdf-leave-id" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-weight: bold; font-size: 13.2px; letter-spacing: 0.5px; font-family: 'Arial', sans-serif; vertical-align: middle; white-space: nowrap;"></td>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">رمز الإجازة</td>
+                </tr>
+                <tr style="background-color: #1F3864; color: white;">
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 4px; height: 40px; font-weight: bold; font-size: 13px; background-color: #1F3864; vertical-align: middle;">Leave Duration</td>
+                    <td id="pdf-duration-en" style="border: 1.3px solid #cccccc; padding: 5px 4px; height: 40px; font-weight: normal; font-size: 11.8px; font-family: 'Arial', sans-serif; background-color: #1F3864; vertical-align: middle; white-space: nowrap;"></td>
+                    <td id="pdf-duration-ar" dir="rtl" style="border: 1.3px solid #cccccc; padding: 5px 4px; height: 40px; font-weight: 500; font-size: 12.5px; font-family: 'Tajawal', sans-serif; background-color: #1F3864; vertical-align: middle; white-space: nowrap;"></td>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 4px; height: 40px; font-weight: bold; font-size: 13px; background-color: #1F3864; vertical-align: middle;">مدة الإجازة</td>
+                </tr>
+                <tr>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">Admission Date</td>
+                    <td id="pdf-admission-g" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-weight: normal; font-size: 12.5px; font-family: 'Arial', sans-serif; vertical-align: middle;"></td>
+                    <td id="pdf-admission-h" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-weight: normal; font-size: 12.5px; font-family: 'Arial', sans-serif; vertical-align: middle;"></td>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">تاريخ الدخول</td>
+                </tr>
+                <tr style="background-color: #f7f7f7;">
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">Discharge Date</td>
+                    <td id="pdf-discharge-g" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-weight: normal; font-size: 12.5px; font-family: 'Arial', sans-serif; vertical-align: middle;"></td>
+                    <td id="pdf-discharge-h" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-weight: normal; font-size: 12.5px; font-family: 'Arial', sans-serif; vertical-align: middle;"></td>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">تاريخ الخروج</td>
+                </tr>
+                <tr>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">Issue Date</td>
+                    <td colspan="2" id="pdf-issue-date" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-weight: normal; font-size: 12.5px; font-family: 'Arial', sans-serif; vertical-align: middle;"></td>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">تاريخ إصدار التقرير</td>
+                </tr>
+                <tr style="background-color: #f7f7f7;">
+                    <td id="pdf-name-label-en" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">Name</td>
+                    <td id="pdf-name-en" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Arial',sans-serif; font-size: 12px; font-weight: normal; letter-spacing: 0.2px; text-transform: uppercase; vertical-align: middle;"></td>
+                    <td id="pdf-name-ar" dir="rtl" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Tajawal',sans-serif; font-size: 13px; font-weight: 500; vertical-align: middle;"></td>
+                    <td id="pdf-name-label-ar" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">الاسم</td>
+                </tr>
+                <tr>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">National ID / Iqama</td>
+                    <td colspan="2" id="pdf-national-id" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family: 'Arial', sans-serif; letter-spacing: 0.8px; font-size: 13.2px; font-weight: bold; vertical-align: middle; white-space: nowrap;"></td>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">رقم الهوية/الاقامه</td>
+                </tr>
+                <tr style="background-color: #f7f7f7;">
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">Nationality</td>
+                    <td id="pdf-nationality-en" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Arial',sans-serif; font-weight: normal; font-size: 12px; vertical-align: middle;">Saudi Arabia</td>
+                    <td id="pdf-nationality-ar" dir="rtl" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Tajawal',sans-serif; font-weight: 500; font-size: 13px; vertical-align: middle;">السعودية</td>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">الجنسية</td>
+                </tr>
+                <tr id="pdf-relation-row" style="display:none;">
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">Relation</td>
+                    <td id="pdf-relation-en" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Arial',sans-serif; font-weight: normal; font-size: 12px; vertical-align: middle;"></td>
+                    <td id="pdf-relation-ar" dir="rtl" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Tajawal',sans-serif; font-weight: 500; font-size: 13px; vertical-align: middle;"></td>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">صلة القرابة</td>
+                </tr>
+                <tr>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">Employer</td>
+                    <td id="pdf-employer-en" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Arial',sans-serif; font-weight: normal; font-size: 12px; vertical-align: middle;"></td>
+                    <td id="pdf-employer-ar" dir="rtl" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Tajawal',sans-serif; font-weight: 500; font-size: 13px; vertical-align: middle;"></td>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">جهة العمل</td>
+                </tr>
+                <tr style="background-color: #f7f7f7;">
+                    <td id="pdf-doc-label-en" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">Practitioner Name</td>
+                    <td id="pdf-doctor-en" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Arial',sans-serif; font-size: 12px; font-weight: normal; letter-spacing: 0.2px; text-transform: uppercase; vertical-align: middle;"></td>
+                    <td id="pdf-doctor-ar" dir="rtl" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Tajawal',sans-serif; font-size: 13px; font-weight: 500; vertical-align: middle;"></td>
+                    <td id="pdf-doc-label-ar" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">اسم الممارس</td>
+                </tr>
+                <tr>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; color: #316DB5; font-size: 13px; vertical-align: middle;">Position</td>
+                    <td id="pdf-position-en" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Arial',sans-serif; font-weight: normal; font-size: 12px; vertical-align: middle;"></td>
+                    <td id="pdf-position-ar" dir="rtl" style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; color: #293C73; font-family:'Tajawal',sans-serif; font-weight: 500; font-size: 13px; vertical-align: middle;"></td>
+                    <td style="border: 1.3px solid #cccccc; padding: 5px 6px; height: 40px; font-weight: bold; font-size: 13.5px; color: #316DB5; vertical-align: middle;">المسمى الوظيفي</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- === FOOTER === -->
+    <div style="display: flex; justify-content: space-between; align-items: stretch; margin-top: auto; flex-grow: 1; padding-top: 10px;">
+        
+        <!-- Left Footer (QR & Date) -->
+        <div style="width: 45%; text-align: center; display: flex; flex-direction: column; justify-content: flex-start;">
+            <div style="height: 110px; display: flex; align-items: flex-start; justify-content: center; padding-top: 4px;">
+                <div id="pdf-qrcode" style="width: 72px; height: 72px;"></div>
+            </div>
+            <p style="font-size: 11.5px; font-weight: bold; margin: 0 0 4px 0; font-family: 'Tajawal', sans-serif; line-height: 1.4;">للتحقق من بيانات التقرير يرجى التأكد من زيارة موقع منصة صحة<br>الرسمي</p>
+            <p style="font-size: 9px; margin: 0 0 3px 0; color: #222; font-weight: bold; font-style: italic;">To check the report please visit Seha's offical website</p>
+            <a style="font-size: 10px; font-weight: bold; color: #0000EE; text-decoration: underline;">www.seha.sa/#/inquiries/slenquiry</a>
+            
+            <div style="margin-top: auto; text-align: left; font-weight: bold; font-size: 12px; color: #000; padding-bottom: 20px;">
+                <p id="pdf-time" style="margin: 0 0 26px 0; line-height: 1.2;">10:38 AM</p>
+                <p id="pdf-day-date" style="margin: 0; line-height: 1.2;">Saturday, 15 August 2026</p>
+            </div>
+        </div>
+
+        <!-- Center Vertical Divider -->
+        <div style="width: 2px; background-color: #cccccc; height: 165px; margin: 0 20px;"></div>
+
+        <!-- Right Footer (Logos) -->
+        <div style="width: 45%; text-align: center; display: flex; flex-direction: column; justify-content: flex-start;">
+            
+            <div id="pdf-moh-logo-container" style="display: none; height: 110px; align-items: flex-start; justify-content: center; padding-top: 4px;">
+                <img id="pdf-moh-logo" src="" alt="MoH Logo" style="max-height: 80px; margin: 0 auto; object-fit: contain;">
+            </div>
+            
+            <div id="pdf-hospital-logo-container" style="height: 110px; display: flex; align-items: flex-start; justify-content: center; padding-top: 4px;">
+                <img id="pdf-hospital-logo" src="./الشعارات/Saudi_Ministry_of_Health.JPG" alt="Hospital/MOH Logo" style="max-height: 90px; margin: 0 auto; object-fit: contain;" onerror="this.src='https://i.ibb.co/L5k6nN4/moh-logo.png'">
+            </div>
+            
+            <div style="margin-bottom: auto;">
+                <h3 id="pdf-hospital-ar" style="font-size: 13.5px; font-weight: bold; margin: 0 0 4px 0; font-family: 'Tajawal', sans-serif; color: #000; line-height: 1.4;">مستشفى الملك فهد التخصصي</h3>
+                <h4 id="pdf-hospital-en" style="font-size: 11px; font-weight: bold; margin: 0 0 3px 0; font-family: 'Arial', sans-serif; color: #000; line-height: 1.4;">King Fahad Specialist Hospital</h4>
+                <p id="pdf-license" style="font-size: 13px; font-weight: bold; color: #000; display: none; margin: 0;">رقم الترخيص : <span id="pdf-license-val"></span></p>
+            </div>
+            
+            <div style="display: flex; justify-content: center; padding-bottom: 20px; margin-top: 15px;">
+                <img src="./الشعارات/dfhZfyJM_400x400 (1).jpg" alt="NHIC Logo" style="height: 90px; object-fit: contain;" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/90/%D8%A7%D9%84%D9%85%D8%B1%D9%83%D8%B2_%D8%A7%D9%84%D9%88%D8%B7%D9%86%D9%8A_%D9%84%D9%84%D9%85%D8%B9%D9%84%D9%88%D9%85%D8%A7%D8%AA_%D8%A7%D9%84%D8%B5%D8%AD%D9%8A%D8%A9.png'">
+            </div>
+        </div>
+        
+    </div>
+
+</div>

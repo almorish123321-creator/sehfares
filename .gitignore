@@ -1,0 +1,17 @@
+node_modules/
+database.sqlite
+*.log
+.cache/
+temp_scratch_backup/
+.env
+*.tmp*
+data/*.tmp*
+
+# Persistent production database files (must never be tracked in git)
+subscriptions.json
+subscriptions.backup*.json
+migration_pre_metrics.json
+data/subscriptions.json
+data/reports.json
+data/transactions.json
+data/metadata.json

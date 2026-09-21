@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإجازات المرضية - منصة صحة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #23559d;
+            --light-blue: #ebf2f8;
+            --text-dark: #333;
+            --text-gray: #777;
+            --border-color: #ced4da;
+            --footer-bg: #295796;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        body {
+            background-color: white;
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background-color: white;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-right img {
+            height: 45px;
+        }
+
+        .header-left .menu-icon {
+            font-size: 28px;
+            color: var(--primary-blue);
+            cursor: pointer;
+        }
+
+        /* Breadcrumbs */
+        .breadcrumbs {
+            padding: 20px 5%;
+            font-size: 13px;
+            color: var(--primary-blue);
+            font-weight: 700;
+        }
+
+        .breadcrumbs span {
+            color: var(--text-gray);
+            margin: 0 5px;
+            font-weight: 400;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            padding: 20px 5%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 10%;
+            right: 10%;
+            height: 8px;
+            background-color: #d8e5f2;
+            z-index: -1;
+        }
+
+        .description {
+            color: var(--text-gray);
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 450px;
+            background: white;
+            padding: 0;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+            text-align: right;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-blue);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1a437d;
+        }
+
+        /* Result Box */
+        #resultBox {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            background-color: #f1f8f1;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        #resultBox h3 {
+            margin-bottom: 15px;
+            color: #155724;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 5px;
+        }
+        
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--footer-bg);
+            color: white;
+            padding: 40px 5%;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .footer-logo {
+            height: 60px;
+            margin-bottom: 20px;
+            filter: brightness(0) invert(1);
+        }
+
+        .footer-desc {
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #d1e1f5;
+        }
+
+        .footer-section {
+            margin-bottom: 30px;
+        }
+
+        .footer-section h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-section h3::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background-color: #7ba4db;
+        }
+
+        .footer-links {
+            list-style: none;
+            margin-bottom: 30px;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 15px;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+        }
+
+        .contact-info {
+            text-align: center;
+            font-size: 14px;
+            color: white;
+            margin-bottom: 20px;
+            line-height: 2;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+            font-size: 13px;
+            color: #d1e1f5;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Floating widget */
+        .floating-widget {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 65px;
+            height: 65px;
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="header-right">
+            <!-- Using local Seha logo or a web fallback -->
+            <img src="الشعارات/Seha.png" alt="صحة Seha" onerror="this.src='https://www.seha.sa/assets/images/logo.png'">
+        </div>
+        <div class="header-left">
+            <div class="menu-icon">☰</div>
+        </div>
+    </header>
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        الرئيسية <span>/</span> الاستعلامات <span>/</span> الإجازات المرضية
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <h1>الإجازات المرضية</h1>
+        <p class="description">
+            خدمة الاستعلام عن الإجازات المرضية تتيح لك الاستعلام عن حالة طلبك للإجازة ويمكنك طباعتها عن طريق تطبيق صحتي
+        </p>
+
+        <div class="form-container" id="formContainer">
+            <form id="enquiryForm">
+                <div class="input-group">
+                    <input type="text" id="serviceCode" placeholder="رمز الخدمة" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="nationalId" placeholder="رقم الهوية / الإقامة" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">استعلام</button>
+                <button type="button" class="btn btn-primary" onclick="window.location.href='/'">رجوع للاستعلامات</button>
+            </form>
+        </div>
+
+        <div id="resultBox">
+            <h3>تفاصيل الإجازة المرضية</h3>
+            <div class="result-row">
+                <span class="result-label">حالة الإجازة:</span>
+                <span style="font-weight: bold; color: green;">معتمدة</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">اسم المريض:</span>
+                <span id="resName"></span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">رقم الهوية:</span>
+                <span id="resNid"></span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">المدة:</span>
+                <span id="resDur"></span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">تاريخ الإصدار:</span>
+                <span id="resDate"></span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">المنشأة الصحية:</span>
+                <span id="resHosp"></span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">الطبيب المعالج:</span>
+                <span id="resDoc"></span>
+            </div>
+            
+            <button class="btn btn-primary" style="margin-top: 20px;" onclick="document.getElementById('resultBox').style.display='none'; document.getElementById('formContainer').style.display='block';">بحث جديد</button>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <img src="الشعارات/Seha.png" class="footer-logo" alt="Seha Logo" onerror="this.src='https://www.seha.sa/assets/images/logo-white.png'">
+        <p class="footer-desc">
+            منصة صحة تخدم جميع المنشآت الطبية من خلال تقديم الخدمات الصحية إلكترونياً لجميع المنشآت الطبية وتسعى إلى توحيد وأتمتة الإجراءات والخدمات بما في ذلك رفع جودة الأداء وخفض التكاليف.
+        </p>
+
+        <div class="footer-section">
+            <h3>القائمة الرئيسية</h3>
+            <ul class="footer-links">
+                <li><a href="#">الخدمات</a></li>
+                <li><a href="#">الاستعلامات</a></li>
+                <li><a href="#">الأسئلة الشائعة</a></li>
+                <li><a href="#">تواصل معنا</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>تواصل معنا</h3>
+            <div class="contact-info">
+                📞 920002005<br>
+                ✉️ support@seha.sa<br>
+                أوقات العمل: الأحد حتى الخميس 8 ص - 11 م
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>جميع الحقوق محفوظة من قبل وزارة الصحة © 2026</div>
+            <div>سياسة الخصوصية وشروط الاستخدام &nbsp;|&nbsp; دليل الاستخدام</div>
+        </div>
+    </footer>
+
+    <!-- Floating Chat Widget -->
+    <div class="floating-widget">
+        <svg viewBox="0 0 24 24" width="35" height="35" fill="var(--primary-blue)">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path>
+        </svg>
+    </div>
+
+    <script>
+        // Auto-fill from URL params if present (from QR code)
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('id')) {
+            document.getElementById('serviceCode').value = urlParams.get('id');
+        }
+        if(urlParams.get('nid')) {
+            document.getElementById('nationalId').value = urlParams.get('nid');
+        }
+
+        document.getElementById('enquiryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading animation
+            const btn = this.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = 'جاري البحث...';
+            btn.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.opacity = '1';
+                
+                // If data came from URL QR scan
+                if(urlParams.get('name')) {
+                    document.getElementById('resName').innerText = urlParams.get('name');
+                    document.getElementById('resNid').innerText = urlParams.get('nid') || document.getElementById('nationalId').value;
+                    document.getElementById('resDur').innerText = (urlParams.get('dur') || '-') + ' يوم / أيام';
+                    document.getElementById('resDate').innerText = urlParams.get('date') || '-';
+                    document.getElementById('resHosp').innerText = urlParams.get('hosp') || '-';
+                    document.getElementById('resDoc').innerText = (urlParams.get('doc') || '-') + (urlParams.get('pos') ? ' (' + urlParams.get('pos') + ')' : '');
+                    
+                    document.getElementById('formContainer').style.display = 'none';
+                    document.getElementById('resultBox').style.display = 'block';
+                } else {
+                    // Generic success for manual entry (if they just type random numbers)
+                    document.getElementById('resName').innerText = 'المريض';
+                    document.getElementById('resNid').innerText = document.getElementById('nationalId').value;
+                    document.getElementById('resDur').innerText = '3 يوم / أيام';
+                    document.getElementById('resDate').innerText = new Date().toLocaleDateString('en-GB');
+                    document.getElementById('resHosp').innerText = 'مستشفى';
+                    document.getElementById('resDoc').innerText = 'طبيب عام';
+                    
+                    document.getElementById('formContainer').style.display = 'none';
+                    document.getElementById('resultBox').style.display = 'block';
+                }
+            }, 800); // 800ms fake loading delay
+        });
+        
+    </script>
+</body>
+</html>
