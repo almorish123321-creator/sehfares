@@ -110,6 +110,144 @@ class ShortIoService {
      * @param {boolean} [params.allowDuplicates=false] - Prevent duplicate creation
      * @returns {Promise<{success: boolean, shortURL: string, idString?: string, fromCache?: boolean}>}
      */
+    // =================================================================
+    // Dub.co support
+    //
+    // Dub is used as the primary provider when DUB_API_KEY is present.
+    // Its API differs from Short.io: POST https://api.dub.co/links with
+    // a Bearer token and { url, domain, key } body; an existing key
+    // returns 409 and can be fetched from GET /links/info.
+    // =================================================================
+    getDubKey() {
+        return (process.env.DUB_API_KEY || '').trim();
+    }
+
+    getDubDomain() {
+        return (process.env.DUB_DOMAIN || 'farescccc.com').trim().toLowerCase();
+    }
+
+    isDubConfigured() {
+        const key = this.getDubKey();
+        return Boolean(key && key.startsWith('dub_'));
+    }
+
+    /**
+     * Verify that a short domain actually resolves on the public internet.
+     * A domain that is registered but has no DNS record produces links that
+     * 404 for the end user — exactly the failure mode we must avoid. Result is
+     * cached so this costs at most one lookup per TTL.
+     */
+    async isDomainReachable(domain, ttlMs = 10 * 60 * 1000) {
+        const key = `dns:${domain}`;
+        const cached = this.cache.get(key);
+        if (cached && Date.now() - cached.at < ttlMs) return cached.ok;
+
+        let ok = false;
+        try {
+            const dns = require('dns').promises;
+            const records = await Promise.race([
+                Promise.allSettled([dns.resolve4(domain), dns.resolveCname(domain)]),
+                new Promise((_, rej) => setTimeout(() => rej(new Error('dns timeout')), 5000))
+            ]);
+            ok = records.some((r) => r.status === 'fulfilled' && Array.isArray(r.value) && r.value.length > 0);
+        } catch (e) {
+            ok = false;
+        }
+        this.cache.set(key, { at: Date.now(), ok });
+        if (!ok) {
+            console.warn(`[ShortLinks] Domain "${domain}" has no DNS record — its links would not open. Using the app URL instead.`);
+        }
+        return ok;
+    }
+
+    async createDubLink({ originalURL, path }) {
+        const key = this.sanitizePath(path);
+        const domain = this.getDubDomain();
+        const apiKey = this.getDubKey();
+
+        const payload = { url: originalURL, domain, key };
+
+        let lastError = null;
+        for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+            try {
+                const response = await fetch('https://api.dub.co/links', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return {
+                        success: true,
+                        shortURL: data.shortLink,
+                        idString: data.id,
+                        domain,
+                        path: key,
+                        provider: 'dub'
+                    };
+                }
+
+                // Key already taken -> fetch the existing link
+                if (response.status === 409) {
+                    const existing = await this.getExistingDubLink(domain, key);
+                    if (existing) return existing;
+                }
+
+                let errMsg = `Dub responded ${response.status}`;
+                try {
+                    const body = await response.json();
+                    errMsg = (body.error && body.error.message) || body.message || errMsg;
+                } catch (e) { /* keep default */ }
+
+                if (response.status >= 500 && attempt <= MAX_RETRIES) {
+                    await new Promise((r) => setTimeout(r, 1000 * attempt));
+                    continue;
+                }
+                // 4xx (other than 409) will not succeed on retry
+                throw new Error(errMsg);
+            } catch (err) {
+                clearTimeout(timeoutId);
+                lastError = err;
+                if (attempt <= MAX_RETRIES && !/^(Dub responded 4|Invalid|Unauthorized)/.test(err.message)) {
+                    await new Promise((r) => setTimeout(r, 1000 * attempt));
+                    continue;
+                }
+                break;
+            }
+        }
+        throw lastError || new Error('Dub request failed');
+    }
+
+    async getExistingDubLink(domain, path) {
+        try {
+            const url = `https://api.dub.co/links/info?domain=${encodeURIComponent(domain)}&key=${encodeURIComponent(path)}`;
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${this.getDubKey()}`, 'Accept': 'application/json' }
+            });
+            if (!response.ok) return null;
+            const data = await response.json();
+            return {
+                success: true,
+                shortURL: data.shortLink,
+                idString: data.id,
+                domain,
+                path,
+                provider: 'dub',
+                alreadyExists: true
+            };
+        } catch (e) {
+            return null;
+        }
+    }
+
     async createShortLink({ originalURL, path, allowDuplicates = false }) {
         const domain = this.getDomain();
         const sanitizedPath = this.sanitizePath(path);
@@ -120,6 +258,26 @@ class ShortIoService {
 
         if (!originalURL) {
             throw new Error('ShortIoService: originalURL is required');
+        }
+
+        // 0. Dub.co takes priority when configured AND its domain is reachable.
+        //    Skipping an unreachable domain avoids handing the user a dead link.
+        if (this.isDubConfigured()) {
+            const dubDomain = this.getDubDomain();
+            const dubCacheKey = `dub:${dubDomain}:${sanitizedPath}`;
+            if (this.cache.has(dubCacheKey)) {
+                const c = this.cache.get(dubCacheKey);
+                return { ...c, fromCache: true };
+            }
+            if (await this.isDomainReachable(dubDomain)) {
+                try {
+                    const dubResult = await this.createDubLink({ originalURL, path: sanitizedPath });
+                    this.cache.set(dubCacheKey, dubResult);
+                    return dubResult;
+                } catch (e) {
+                    console.warn('[DubService] Short link creation failed:', e.message);
+                }
+            }
         }
 
         // 1. Check in-memory cache to prevent duplicate API calls for this record
@@ -137,6 +295,21 @@ class ShortIoService {
         }
 
         // 2. Fallback if API key is not yet configured in environment variables
+        // Short.io is skipped as well when its domain does not resolve.
+        if (this.isConfigured() && !(await this.isDomainReachable(domain))) {
+            const fallbackUrl = this.buildFallbackUrl(sanitizedPath);
+            const result = {
+                success: true,
+                shortURL: fallbackUrl,
+                domain,
+                path: sanitizedPath,
+                isFallback: true,
+                warning: `Domain ${domain} is not reachable (no DNS record)`
+            };
+            this.cache.set(cacheKey, result);
+            return result;
+        }
+
         if (!this.isConfigured()) {
             const fallbackUrl = this.buildFallbackUrl(sanitizedPath);
             console.warn(`[ShortIoService] SHORTIO_API_KEY is not set. Generated fallback URL: ${fallbackUrl}`);
