@@ -312,14 +312,23 @@ class ShortIoService {
 
         if (!this.isConfigured()) {
             const fallbackUrl = this.buildFallbackUrl(sanitizedPath);
-            console.warn(`[ShortIoService] SHORTIO_API_KEY is not set. Generated fallback URL: ${fallbackUrl}`);
+
+            // Explain the REAL reason we ended up here so the logs are actionable
+            let reason;
+            if (this.isDubConfigured()) {
+                reason = `DUB_DOMAIN "${this.getDubDomain()}" has no DNS record, so its links would not open`;
+            } else {
+                reason = 'no short-link provider configured (set DUB_API_KEY or SHORTIO_API_KEY)';
+            }
+            console.warn(`[ShortLinks] ${reason}. Using the app URL: ${fallbackUrl}`);
+
             const result = {
                 success: true,
                 shortURL: fallbackUrl,
                 domain: domain,
                 path: sanitizedPath,
                 isFallback: true,
-                warning: 'SHORTIO_API_KEY not configured in environment variables'
+                warning: reason
             };
             this.cache.set(cacheKey, result);
             return result;
